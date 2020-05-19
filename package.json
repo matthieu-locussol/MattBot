@@ -5,7 +5,7 @@
    "description": "JeckhysBot for Discord",
    "license": "MIT",
    "scripts": {
-      "start": "tsc && node dist/app.js"
+      "start": "tsc && export $(cat .env) && node dist/app.js"
    },
    "dependencies": {
       "@types/child-process-promise": "^2.2.1",
