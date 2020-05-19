@@ -1,0 +1,22 @@
+{
+   "name": "jeckhys-bot",
+   "private": true,
+   "version": "1.0.0",
+   "description": "JeckhysBot for Discord",
+   "license": "MIT",
+   "scripts": {
+      "start": "tsc && node dist/app.js"
+   },
+   "dependencies": {
+      "@types/child-process-promise": "^2.2.1",
+      "@types/node": "^13.13.4",
+      "axios": "^0.19.2",
+      "child-process-promise": "^2.2.1",
+      "discord.js": "^12.2.0",
+      "moment": "^2.25.3",
+      "node-osu": "^2.2.0",
+      "ojsama": "^1.2.5",
+      "timeago.js": "^4.0.2",
+      "typescript": "^3.8.3"
+   }
+}
