@@ -1,11 +1,11 @@
 const config = {
    api: {
       key: {
-         osu: '336338f18c34373975bd3ec5bb2c1043055523fe',
-         discord: 'NDM4NDY0MzM4OTM2OTg3NjQ5.Xq8dxQ.rOvkjtqZEsFJkrGqA7uo9cXf_c8',
+         osu: process.env.OSU_API_KEY,
+         discord: process.env.DISCORD_TOKEN,
       },
       endpoint: {
-         beatmaps: 'https://osu.lea.moe/',
+         beatmaps: process.env.BEATMAPS_ENDPOINT,
       },
    },
 };
