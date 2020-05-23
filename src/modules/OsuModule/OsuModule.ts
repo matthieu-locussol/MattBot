@@ -28,11 +28,11 @@ const recentPlay = (message: d.Message, username: string, number: number = 1) =>
             message.channel.send(
                new d.MessageEmbed()
                   .setAuthor(
-                     `${recent.player.name} : ${recent.player.pp.raw}pp\nWR ${sep} #${recent.player.pp.rank} | ${recent.player.country} ${sep} #${recent.player.pp.countryRank}`,
+                     `${recent.player.name} : ${recent.player.pp.raw}pp | WR ${sep} #${recent.player.pp.rank} | ${recent.player.country} ${sep} #${recent.player.pp.countryRank}`,
                      recent.player.avatar,
                      recent.player.url,
                   )
-                  .attachFiles(['chart.png'])
+                  .attachFiles(['src/data/chart.png'])
                   .setImage('attachment://chart.png')
                   .setColor(colors[recent.rankEmoji])
                   .setTitle(

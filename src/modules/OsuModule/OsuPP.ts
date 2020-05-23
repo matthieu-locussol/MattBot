@@ -4,11 +4,10 @@ import * as osu from 'ojsama';
 import { Chart } from 'chart.js';
 import { CanvasRenderService } from 'chartjs-node-canvas';
 
-// (aim + speed) / 2
-const CHART_WIDTH = 399;
+const CHART_WIDTH = 299;
 const CHART_HEIGHT = 40;
-const CHART_STRAINS = 70;
-const CHART_FILENAME = 'chart.png';
+const CHART_STRAINS = 100;
+const CHART_FILENAME = 'src/data/chart.png';
 
 const parser = new osu.parser();
 
@@ -48,12 +47,10 @@ const generateChart = (difficulty: osu.std_diff) => {
    for (let i = 0; i < strains_max; ++i) {
       // Slice of strains to sum
       const slice = data.slice(i * step, (i + 1) * step);
-      // Average speed
-      const speed = average(slice.map((e) => e[0]));
-      // Average aim
-      const aim = average(slice.map((e) => e[1]));
+      // Average of speed + aim
+      const perfs = slice.map((e) => (e[0] + e[1]) / 2);
 
-      averages.push({ speed, aim });
+      averages.push(average(perfs));
    }
 
    const configuration: Chart.ChartConfiguration = {
@@ -62,18 +59,23 @@ const generateChart = (difficulty: osu.std_diff) => {
          labels: averages.map(() => ''),
          datasets: [
             {
-               data: averages.map((e) => e.speed),
+               data: averages,
                borderWidth: 1,
                borderColor: 'rgba(255, 107, 129, 1)',
-               backgroundColor: 'rgba(255, 107, 129, 0.3)',
-            },
-            {
-               data: averages.map((e) => e.aim),
-               borderWidth: 1,
-               borderColor: 'rgba(107, 129, 255, 1)',
-               backgroundColor: 'rgba(107, 129, 255, 0.3)',
+               backgroundColor: 'rgba(255, 107, 129, 0.4)',
             },
          ],
+      },
+      options: {
+         scales: {
+            yAxes: [
+               {
+                  ticks: {
+                     max: Math.max(...averages),
+                  },
+               },
+            ],
+         },
       },
    };
 
