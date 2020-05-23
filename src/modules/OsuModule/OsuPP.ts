@@ -1,6 +1,6 @@
 import * as fs from 'fs';
-var readline = require('readline');
 import * as osu from 'ojsama';
+import * as readline from 'readline';
 import { Chart } from 'chart.js';
 import { CanvasRenderService } from 'chartjs-node-canvas';
 
