@@ -8,9 +8,12 @@
       "start": "tsc && export $(cat .env) && node dist/app.js"
    },
    "dependencies": {
+      "@types/chart.js": "^2.9.21",
       "@types/child-process-promise": "^2.2.1",
       "@types/node": "^13.13.4",
       "axios": "^0.19.2",
+      "chart.js": "^2.9.3",
+      "chartjs-node-canvas": "^3.0.6",
       "child-process-promise": "^2.2.1",
       "discord.js": "^12.2.0",
       "moment": "^2.25.3",
