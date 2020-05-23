@@ -8,6 +8,7 @@ export interface OsuEntry {
 }
 
 const sep = '•';
+const datas: OsuEntry[] = loadData('osu.json');
 const colors = {
    RankF: 0xe7434a,
    RankD: 0xf33836,
@@ -19,7 +20,6 @@ const colors = {
    RankX: 0xfef337,
    RankXH: 0xddfaff,
 };
-const datas: OsuEntry[] = loadData('osu.json');
 
 const recentPlay = (message: d.Message, username: string, number: number = 1) => {
    if (number >= 1 && number <= 50) {
@@ -28,10 +28,12 @@ const recentPlay = (message: d.Message, username: string, number: number = 1) =>
             message.channel.send(
                new d.MessageEmbed()
                   .setAuthor(
-                     `${recent.player.name} : ${recent.player.pp.raw}pp | WR ${sep} #${recent.player.pp.rank} | ${recent.player.country} ${sep} #${recent.player.pp.countryRank}`,
+                     `${recent.player.name} : ${recent.player.pp.raw}pp\nWR ${sep} #${recent.player.pp.rank} | ${recent.player.country} ${sep} #${recent.player.pp.countryRank}`,
                      recent.player.avatar,
                      recent.player.url,
                   )
+                  .attachFiles(['chart.png'])
+                  .setImage('attachment://chart.png')
                   .setColor(colors[recent.rankEmoji])
                   .setTitle(
                      `${recent.beatmap.artist} - ${recent.beatmap.name} [${recent.beatmap.difficulty}]`,
@@ -40,8 +42,10 @@ const recentPlay = (message: d.Message, username: string, number: number = 1) =>
                   .setThumbnail(recent.beatmap.thumbnail)
                   .addField(
                      `${getEmoji(message, recent.rankEmoji)}${
-                        recent.mods ? ` ${sep} **${recent.mods}**` : ''
-                     } ${sep} ${recent.score} ${sep} ${recent.accuracy}% ${sep} ${recent.date}`,
+                        recent.rankEmoji === 'RankF' ? `(${recent.progress}%)` : ''
+                     }${recent.mods ? ` ${sep} **${recent.mods}**` : ''} ${sep} ${recent.score} ${sep} ${
+                        recent.accuracy
+                     }% ${sep} ${recent.date}`,
                      `**${recent.pp.score.pp}pp →** ${
                         recent.pp.isFc ? `**FC**` : `${recent.pp.fc.pp}pp si ${recent.pp.fc.accuracy} FC`
                      } ${sep} **${recent.maxCombo}x**/${recent.beatmap.maxCombo}x \n **${
