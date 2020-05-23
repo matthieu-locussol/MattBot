@@ -86,6 +86,17 @@ const formatApproval = (approval: string) =>
       Loved: 'Loved',
    }[approval]);
 
+const formatProgress = (score: nodeOsu.Score) =>
+   formatAccuracy(
+      (getNumeric(score.counts[300]) +
+         getNumeric(score.counts[100]) +
+         getNumeric(score.counts[50]) +
+         getNumeric(score.counts.miss)) /
+         (getNumeric(score.beatmap.objects.normal) +
+            getNumeric(score.beatmap.objects.slider) +
+            getNumeric(score.beatmap.objects.spinner)),
+   );
+
 export interface OsuScore {
    id: string;
    pp: OsuScorePP;
@@ -96,6 +107,7 @@ export interface OsuScore {
    accuracy: number;
    maxCombo: string | number;
    counts: nodeOsu.ScoreCounts;
+   progress: number;
    beatmap: {
       url: string;
       name: string;
@@ -202,6 +214,7 @@ const getUserRecent = async (username: string, number: number): Promise<OsuScore
          accuracy: formatAccuracy(recent.accuracy),
          maxCombo: recent.maxCombo,
          counts: recent.counts,
+         progress: formatProgress(recent),
          beatmap: {
             url: `https://osu.ppy.sh/beatmaps/${recent.beatmapId}`,
             name: recent.beatmap.title,
