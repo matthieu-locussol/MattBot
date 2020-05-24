@@ -4,6 +4,8 @@ import transformAlias from '../modules/alias';
 import handleOsuModule from '../modules/OsuModule/OsuModule';
 import handleHelpModule from '../modules/HelpModule/HelpModule';
 import handlePingModule from '../modules/PingModule/PingModule';
+import handle____Module from '../modules/____Module/____Module';
+import handleReactModule from '../modules/ReactModule/ReactModule';
 
 interface ClientOptions {
    aliases: Record<string, string>;
@@ -31,6 +33,9 @@ export default class Client {
    public run() {
       this.discordClient.on('ready', () => console.log(this.options.readyMessage));
       this.discordClient.on('message', (message) => this.handleMessage(message));
+      this.discordClient.on('messageReactionAdd', (reaction, user) =>
+         this.handleMessageReaction(reaction, user),
+      );
       this.discordClient.login(this.token);
    }
 
@@ -59,5 +64,10 @@ export default class Client {
             ping: () => handlePingModule(args, message),
          });
       }
+   }
+
+   private handleMessageReaction(reaction: d.MessageReaction, user: d.User | d.PartialUser) {
+      handle____Module(reaction, user);
+      handleReactModule(reaction, user);
    }
 }
