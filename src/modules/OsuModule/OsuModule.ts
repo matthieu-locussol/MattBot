@@ -86,7 +86,7 @@ const recentPlay = (message: d.Message, username: string, number: number = 1) =>
 };
 
 const updateOsuUsername = (message: d.Message, args: string[]) => {
-   const username = args[1];
+   const username = args.slice(1).join(' ');
    const discordId = message.author.id;
 
    if (datas.some((u) => u.discordId === discordId)) {
@@ -104,7 +104,7 @@ const handleMessage = (args: string[], message: d.Message, channels: string[] = 
    if (canAnswer(message, channels)) {
       const prefix = message.content[0];
       // !osu username <username>
-      if (args.length === 2 && args[0] === 'username') {
+      if (args.length >= 2 && args[0] === 'username') {
          updateOsuUsername(message, args);
       }
       // !osu recent
@@ -133,16 +133,19 @@ const handleMessage = (args: string[], message: d.Message, channels: string[] = 
             );
          }
       }
-      // !osu recent [username]
-      else if (args.length === 2 && args[0] === 'recent') {
-         const username = args[1];
-         recentPlay(message, username);
-      }
-      // !osu recent [username] [number]
-      else if (args.length === 3 && args[0] === 'recent') {
-         const number = parseInt(args[2]);
-         const username = args[1];
-         recentPlay(message, username, number);
+      // !osu recent [number] [username]
+      else if (args.length >= 2 && args[0] === 'recent') {
+         // !osu recent [number] [username]
+         if (/^\d+$/.test(args[1])) {
+            const number = parseInt(args[1]);
+            const username = args.slice(2).join(' ');
+            recentPlay(message, username, number);
+         }
+         // !osu recent [username]
+         else {
+            const username = args.slice(1).join(' ');
+            recentPlay(message, username);
+         }
       }
       // !osu
       else if (args.length === 0) {
@@ -154,7 +157,7 @@ const handleMessage = (args: string[], message: d.Message, channels: string[] = 
             .setThumbnail('attachment://osu_logo.png')
             .setDescription(
                `\`${prefix}osu\` => Affiche l'aide relative à osu!
-						\`${prefix}osu recent [username] [1..50]\` => Affiche le score le plus récent
+						\`${prefix}osu recent [1..50] [username]\` => Affiche le score le plus récent
 						\`${prefix}osu username <username>\` => Associe ton username sur osu!`,
             )
             .setFooter(`JeckhysBot par マチュー`)
