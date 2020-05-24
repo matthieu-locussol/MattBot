@@ -1,7 +1,7 @@
-const transformAlias = (aliases: Record<string, string>, message: string) => {
+const transformAlias = (prefix: string, aliases: Record<string, string>, message: string) => {
    for (const [alias, command] of Object.entries(aliases)) {
-      if (message.startsWith(alias)) {
-         return message.replace(alias, command);
+      if (message.startsWith(prefix + alias)) {
+         return message.replace(prefix + alias, prefix + command);
       }
    }
 

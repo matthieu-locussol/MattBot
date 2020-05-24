@@ -34,6 +34,11 @@ const recentPlay = (message: d.Message, username: string, number: number = 1) =>
                   )
                   .attachFiles(['src/data/chart.png'])
                   .setImage('attachment://chart.png')
+                  .setDescription(
+                     `${recent.wr ? `***Record mondial #${recent.wr}***` : ''}${
+                        recent.wr && recent.pb ? ` ${sep} ` : ''
+                     }${recent.pb ? `***Record personnel #${recent.pb}***` : ''}`,
+                  )
                   .setColor(colors[recent.rankEmoji])
                   .setTitle(
                      `${recent.beatmap.artist} - ${recent.beatmap.name} [${recent.beatmap.difficulty}]`,

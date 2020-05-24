@@ -5,9 +5,7 @@ import axios from 'axios';
 import { exec } from 'child-process-promise';
 import * as moment from 'moment';
 
-const instance = new nodeOsu.Api(Config.api.key.osu, {
-   completeScores: true,
-});
+const instance = new nodeOsu.Api(Config.api.key.osu);
 
 const instanceBeatmaps = axios.create({
    baseURL: Config.api.endpoint.beatmaps,
@@ -27,6 +25,17 @@ const getNumeric = (n: string | number): number => {
 
 const formatDuration = (duration: string | number) =>
    `${Math.floor(getNumeric(duration) / 60)}:${getNumeric(duration) % 60}`;
+
+const computeAccuracy = (counts: nodeOsu.ScoreCounts) => {
+   return (
+      (getNumeric(counts[300]) * 300 + getNumeric(counts[100]) * 100 + getNumeric(counts[50]) * 50) /
+      ((getNumeric(counts[300]) +
+         getNumeric(counts[100]) +
+         getNumeric(counts[50]) +
+         getNumeric(counts.miss)) *
+         300)
+   );
+};
 
 const formatAccuracy = (accuracy: number) => Math.round(accuracy * 10000) / 100;
 
@@ -69,33 +78,53 @@ const formatMods = (mods: string[]) => {
 
 const formatNumber = (s: number) => s.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
-const getAR = (difficulty: nodeOsu.BeatmapDifficulty, beatmapDifficulties: any, mods: number) =>
-   beatmapDifficulties[mods] ? Math.round(beatmapDifficulties[mods].ar * 10) / 10 : difficulty.approach;
+const getAR = (defaultAR: number, beatmapDifficulties: any, mods: number) =>
+   beatmapDifficulties[mods] ? Math.round(beatmapDifficulties[mods].ar * 10) / 10 : defaultAR;
 
-const getOD = (difficulty: nodeOsu.BeatmapDifficulty, beatmapDifficulties: any, mods: number) =>
-   beatmapDifficulties[mods] ? Math.round(beatmapDifficulties[mods].od * 10) / 10 : difficulty.overall;
+const getOD = (defaultOD: number, beatmapDifficulties: any, mods: number) =>
+   beatmapDifficulties[mods] ? Math.round(beatmapDifficulties[mods].od * 10) / 10 : defaultOD;
 
 const formatApproval = (approval: string) =>
    ({
-      Graveyard: 'Cimetière',
-      WIP: 'WIP',
-      Pending: 'En attente',
-      Ranked: 'Classée',
-      Approved: 'Approuvée',
-      Qualified: 'Qualifiée',
-      Loved: 'Loved',
+      '-2': 'Cimetière',
+      '-1': 'WIP',
+      '0': 'En attente',
+      '1': 'Classée',
+      '2': 'Approuvée',
+      '3': 'Qualifiée',
+      '4': 'Loved',
    }[approval]);
 
-const formatProgress = (score: nodeOsu.Score) =>
+const formatProgress = (score: nodeOsu.Score, beatmap: any) =>
    formatAccuracy(
       (getNumeric(score.counts[300]) +
          getNumeric(score.counts[100]) +
          getNumeric(score.counts[50]) +
          getNumeric(score.counts.miss)) /
-         (getNumeric(score.beatmap.objects.normal) +
-            getNumeric(score.beatmap.objects.slider) +
-            getNumeric(score.beatmap.objects.spinner)),
+         beatmap.hit_objects,
    );
+
+const formatBPM = (beatmap: any) =>
+   beatmap.bpm_min === beatmap.bpm_max ? beatmap.bpm : `${beatmap.bpm_min}-${beatmap.bpm_max}`;
+
+export interface BestScore {
+   id: string;
+   score: string | number;
+}
+
+const formatPB = (score: nodeOsu.Score, bestScores: BestScore[]) => {
+   const itemIndex = bestScores.findIndex((s) => s.id === score.beatmapId && s.score === score.score);
+   const pb = itemIndex === -1 ? 0 : itemIndex + 1;
+
+   return pb;
+};
+
+const formatWR = (score: nodeOsu.Score, mapScores: (string | number)[]) => {
+   const itemIndex = mapScores.findIndex((s) => s === score.score);
+   const wr = itemIndex === -1 ? 0 : itemIndex + 1;
+
+   return wr;
+};
 
 export interface OsuScore {
    id: string;
@@ -108,6 +137,8 @@ export interface OsuScore {
    maxCombo: string | number;
    counts: nodeOsu.ScoreCounts;
    progress: number;
+   pb: number;
+   wr: number;
    beatmap: {
       url: string;
       name: string;
@@ -182,27 +213,40 @@ const getScorePP = async (
 
 const getUserRecent = async (username: string, number: number): Promise<OsuScore> => {
    try {
-      const [user, recent] = await Promise.all([
-         instance.getUser({ u: username }),
+      const [recent] = await Promise.all([
          (async () => (await instance.getUserRecent({ u: username, limit: number }))[number - 1])(),
       ]);
 
-      const formattedMods = formatMods(recent.mods);
-
-      const [beatmapInfos, pp] = await Promise.all([
+      const [user, beatmapInfos] = await Promise.all([
+         instance.getUser({ u: username }),
          (async () => await instanceBeatmaps.get(`/b/${recent.beatmapId}`))(),
-         getScorePP(
-            recent.beatmapId,
-            formattedMods.mods,
-            formatAccuracy(recent.accuracy),
-            recent.maxCombo,
-            recent.beatmap.maxCombo,
-            recent.counts.miss,
-         ),
       ]);
 
       const beatmap = beatmapInfos.data.beatmap;
       const beatmapDifficulty = beatmapInfos.data.difficulty;
+
+      const accuracy = formatAccuracy(computeAccuracy(recent.counts));
+      const formattedMods = formatMods(recent.mods);
+
+      const [pp, mapBests, userBests] = await Promise.all([
+         getScorePP(
+            recent.beatmapId,
+            formattedMods.mods,
+            accuracy,
+            recent.maxCombo,
+            beatmapInfos.data.beatmap.max_combo,
+            recent.counts.miss,
+         ),
+         (async () => await instance.getScores({ b: recent.beatmapId, limit: 100 }))(),
+         (async () => await instance.getUserBest({ u: username, limit: 100 }))(),
+      ]);
+
+      const bestScores = userBests.map((b) => ({
+         id: b.beatmapId,
+         score: b.score,
+      }));
+
+      const mapBestScores = mapBests.map((s) => s.score);
 
       return {
          id: user.id,
@@ -211,25 +255,27 @@ const getUserRecent = async (username: string, number: number): Promise<OsuScore
          mods: formatMods(recent.mods).mods,
          rankEmoji: `Rank${recent.rank}`,
          score: formatNumber(getNumeric(recent.score)),
-         accuracy: formatAccuracy(recent.accuracy),
+         accuracy,
          maxCombo: recent.maxCombo,
          counts: recent.counts,
-         progress: formatProgress(recent),
+         progress: formatProgress(recent, beatmap),
+         pb: formatPB(recent, bestScores),
+         wr: formatWR(recent, mapBestScores),
          beatmap: {
             url: `https://osu.ppy.sh/beatmaps/${recent.beatmapId}`,
-            name: recent.beatmap.title,
-            artist: recent.beatmap.artist,
-            thumbnail: `https://b.ppy.sh/thumb/${recent.beatmap.beatmapSetId}l.jpg`,
-            maxCombo: recent.beatmap.maxCombo,
-            difficulty: recent.beatmap.version,
-            cs: recent.beatmap.difficulty.size,
-            ar: getAR(recent.beatmap.difficulty, beatmapDifficulty, formattedMods.values),
-            od: getOD(recent.beatmap.difficulty, beatmapDifficulty, formattedMods.values),
-            hp: recent.beatmap.difficulty.drain,
-            bpm: recent.beatmap.bpm,
-            duration: formatDuration(recent.beatmap.length.total),
-            approval: formatApproval(recent.beatmap.approvalStatus),
-            approvalDate: formatApprovalDate(recent.beatmap.approvedDate),
+            name: beatmap.title,
+            artist: beatmap.artist,
+            thumbnail: `https://b.ppy.sh/thumb/${beatmap.beatmapset_id}l.jpg`,
+            maxCombo: beatmap.max_combo,
+            difficulty: beatmap.version,
+            cs: beatmap.cs,
+            ar: getAR(beatmap.ar, beatmapDifficulty, formattedMods.values),
+            od: getOD(beatmap.od, beatmapDifficulty, formattedMods.values),
+            hp: beatmap.hp,
+            bpm: formatBPM(beatmap),
+            duration: formatDuration(beatmap.total_length),
+            approval: formatApproval(beatmap.approved),
+            approvalDate: formatApprovalDate(beatmap.approved_date),
          },
          player: {
             pp: {
@@ -243,7 +289,7 @@ const getUserRecent = async (username: string, number: number): Promise<OsuScore
             country: user.country,
          },
          mapper: {
-            name: `${recent.beatmap.creator}`,
+            name: `${beatmap.creator}`,
             avatar: `https://a.ppy.sh/${beatmap.creator_id}`,
          },
       };

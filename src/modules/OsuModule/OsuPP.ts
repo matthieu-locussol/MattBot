@@ -18,6 +18,9 @@ const parseArgs = (argv: string[]) => {
       mods: 0,
       acc_percent: undefined,
       combo: undefined,
+      n300: undefined,
+      n100: undefined,
+      n50: undefined,
       nmiss: undefined,
    };
 
@@ -28,6 +31,12 @@ const parseArgs = (argv: string[]) => {
          args.acc_percent = parseFloat(argv[i]);
       } else if (argv[i].endsWith('x')) {
          args.combo = parseInt(argv[i]);
+      } else if (argv[i].endsWith('t')) {
+         args.n300 = parseInt(argv[i]);
+      } else if (argv[i].endsWith('h')) {
+         args.n100 = parseInt(argv[i]);
+      } else if (argv[i].endsWith('f')) {
+         args.n50 = parseInt(argv[i]);
       } else if (argv[i].endsWith('m')) {
          args.nmiss = parseInt(argv[i]);
       }
@@ -95,11 +104,11 @@ readline
    })
    .on('line', parser.feed_line.bind(parser))
    .on('close', () => {
-      const { mods, acc_percent, combo, nmiss } = parseArgs(process.argv);
+      const { mods, acc_percent, combo, n300, n100, n50, nmiss } = parseArgs(process.argv);
 
       const map = parser.map;
       const stars = new osu.diff().calc({ map: map, mods: mods });
-      const pp = osu.ppv2({ stars, combo, nmiss, acc_percent });
+      const pp = osu.ppv2({ stars, combo, n300, n100, n50, nmiss, acc_percent });
 
       const starsResult = stars.toString().split(' ')[0];
       // @ts-ignore

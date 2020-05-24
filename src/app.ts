@@ -2,6 +2,6 @@ import Client from './core/Client';
 
 new Client({
    aliases: {
-      '!or': '!osu recent',
+      or: 'osu recent',
    },
 }).run();

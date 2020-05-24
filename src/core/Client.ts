@@ -13,7 +13,7 @@ interface ClientOptions {
 
 const DefaultClientOptions: ClientOptions = {
    aliases: {},
-   commandPrefix: '!',
+   commandPrefix: Config.bot.prefix,
    readyMessage: 'JeckhysBot is running...',
 };
 
@@ -50,7 +50,7 @@ export default class Client {
       const isCommand = this.isCommand(message.content[0]);
 
       if (isCommand) {
-         message.content = transformAlias(this.options.aliases, message.content);
+         message.content = transformAlias(this.options.commandPrefix, this.options.aliases, message.content);
          const [command, ...args] = this.parseCommand(message.content);
 
          this.switchCommand(command, args, {
