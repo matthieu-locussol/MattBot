@@ -253,6 +253,7 @@ const handleMessage = (args: string[], message: d.Message, channels: string[] = 
                `\`${prefix}osu\` => Affiche l'aide relative à osu!
 						\`${prefix}osu best [1..10] [username]\` => Affiche les meilleurs scores
 						\`${prefix}osu recent [1..50] [username]\` => Affiche le score le plus récent
+						\`${prefix}osu beatmap <beatmapId> [username]\` => Affiche le meilleur score sur une map
 						\`${prefix}osu username <username>\` => Associe ton username sur osu!`,
             )
             .setFooter(`JeckhysBot par マチュー`)
