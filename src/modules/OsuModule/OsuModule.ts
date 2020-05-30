@@ -195,7 +195,8 @@ const handleMessage = (args: string[], message: d.Message, channels: string[] = 
             .setThumbnail('attachment://osu_logo.png')
             .setDescription(
                `\`${prefix}osu\` => Affiche l'aide relative à osu!
-						\`${prefix}osu recent [1..50] [username]\` => Affiche le score le plus récent
+					\`${prefix}osu best [1..10] [username]\` => Affiche les meilleurs scores
+					\`${prefix}osu recent [1..50] [username]\` => Affiche le score le plus récent
 						\`${prefix}osu username <username>\` => Associe ton username sur osu!`,
             )
             .setFooter(`JeckhysBot par マチュー`)
