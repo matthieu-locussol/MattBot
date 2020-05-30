@@ -112,8 +112,8 @@ export interface BestScore {
    score: string | number;
 }
 
-const formatPB = (score: nodeOsu.Score, bestScores: BestScore[]) => {
-   const itemIndex = bestScores.findIndex((s) => s.id === score.beatmapId && s.score === score.score);
+const formatPB = (score: nodeOsu.Score, beatmapId: string, bestScores: BestScore[]) => {
+   const itemIndex = bestScores.findIndex((s) => s.id === beatmapId && s.score === score.score);
    const pb = itemIndex === -1 ? 0 : itemIndex + 1;
 
    return pb;
@@ -286,7 +286,7 @@ const getUserRecent = async (username: string, number: number): Promise<OsuScore
          maxCombo: recent.maxCombo,
          counts: recent.counts,
          progress: formatProgress(recent, beatmap),
-         pb: formatPB(recent, bestScores),
+         pb: formatPB(recent, recent.beatmapId, bestScores),
          wr: formatWR(recent, mapBestScores),
          beatmap: {
             url: `https://osu.ppy.sh/beatmaps/${recent.beatmapId}`,
@@ -326,42 +326,135 @@ const getUserRecent = async (username: string, number: number): Promise<OsuScore
 };
 
 const getUserBest = async (username: string, number: number): Promise<OsuBest> => {
-   const [user, best] = await Promise.all([
-      instance.getUser({ u: username }),
-      (async () => await instance.getUserBest({ u: username, limit: number }))(),
-   ]);
+   try {
+      const [user, best] = await Promise.all([
+         instance.getUser({ u: username }),
+         (async () => await instance.getUserBest({ u: username, limit: number }))(),
+      ]);
 
-   const maps = await Promise.all(
-      best.map((b) => (async () => await (await instanceBeatmaps.get(`/b/${b.beatmapId}`)).data.beatmap)()),
-   );
+      const maps = await Promise.all(
+         best.map((b) =>
+            (async () => await (await instanceBeatmaps.get(`/b/${b.beatmapId}`)).data.beatmap)(),
+         ),
+      );
 
-   return {
-      player: {
-         pp: {
-            raw: formatNumber(getNumeric(user.pp.raw)),
-            rank: formatNumber(getNumeric(user.pp.rank)),
-            countryRank: formatNumber(getNumeric(user.pp.countryRank)),
+      return {
+         player: {
+            pp: {
+               raw: formatNumber(getNumeric(user.pp.raw)),
+               rank: formatNumber(getNumeric(user.pp.rank)),
+               countryRank: formatNumber(getNumeric(user.pp.countryRank)),
+            },
+            url: `https://osu.ppy.sh/users/${user.id}`,
+            name: `${user.name}`,
+            avatar: `https://a.ppy.sh/${user.id}`,
+            country: user.country,
          },
-         url: `https://osu.ppy.sh/users/${user.id}`,
-         name: `${user.name}`,
-         avatar: `https://a.ppy.sh/${user.id}`,
-         country: user.country,
-      },
-      scores: best.map((b, i) => ({
-         score: b.score,
-         accuracy: formatAccuracy(computeAccuracy(b.counts)),
-         rankEmoji: `Rank${b.rank}`,
-         date: formatDate(b.date),
-         mods: formatMods(b.mods).mods,
-         pp: Math.round(getNumeric(b.pp)),
-         beatmap: {
-            url: `https://osu.ppy.sh/beatmaps/${b.beatmapId}`,
-            name: maps[i].title,
-            artist: maps[i].artist,
-            difficulty: formatVersion(maps[i].version),
-         },
-      })),
-   };
+         scores: best.map((b, i) => ({
+            score: b.score,
+            accuracy: formatAccuracy(computeAccuracy(b.counts)),
+            rankEmoji: `Rank${b.rank}`,
+            date: formatDate(b.date),
+            mods: formatMods(b.mods).mods,
+            pp: Math.round(getNumeric(b.pp)),
+            beatmap: {
+               url: `https://osu.ppy.sh/beatmaps/${b.beatmapId}`,
+               name: maps[i].title,
+               artist: maps[i].artist,
+               difficulty: formatVersion(maps[i].version),
+            },
+         })),
+      };
+   } catch (error) {
+      console.error(error);
+   }
 };
 
-export default { instance, getUserRecent, getUserBest };
+const getUserBestBeatmap = async (username: string, beatmapId: string): Promise<OsuScore> => {
+   try {
+      const [score] = await Promise.all([
+         (async () => (await instance.getScores({ b: beatmapId, u: username }))[0])(),
+      ]);
+
+      const [user, beatmapInfos] = await Promise.all([
+         instance.getUser({ u: username }),
+         (async () => await instanceBeatmaps.get(`/b/${beatmapId}`))(),
+      ]);
+
+      const beatmap = beatmapInfos.data.beatmap;
+      const beatmapDifficulty = beatmapInfos.data.difficulty;
+
+      const accuracy = formatAccuracy(computeAccuracy(score.counts));
+      const formattedMods = formatMods(score.mods);
+
+      const [pp, mapBests, userBests] = await Promise.all([
+         getScorePP(
+            beatmapId,
+            formattedMods.mods,
+            accuracy,
+            score.maxCombo,
+            beatmapInfos.data.beatmap.max_combo,
+            score.counts.miss,
+         ),
+         (async () => await instance.getScores({ b: beatmapId, limit: 100 }))(),
+         (async () => await instance.getUserBest({ u: username, limit: 100 }))(),
+      ]);
+
+      const bestScores = userBests.map((b) => ({
+         id: b.beatmapId,
+         score: b.score,
+      }));
+
+      const mapBestScores = mapBests.map((s) => s.score);
+
+      return {
+         id: user.id,
+         pp: pp,
+         date: formatDate(score.date),
+         mods: formatMods(score.mods).mods,
+         rankEmoji: `Rank${score.rank}`,
+         score: formatNumber(getNumeric(score.score)),
+         accuracy,
+         maxCombo: score.maxCombo,
+         counts: score.counts,
+         progress: formatProgress(score, beatmap),
+         pb: formatPB(score, beatmapId, bestScores),
+         wr: formatWR(score, mapBestScores),
+         beatmap: {
+            url: `https://osu.ppy.sh/beatmaps/${beatmapId}`,
+            name: beatmap.title,
+            artist: beatmap.artist,
+            thumbnail: `https://b.ppy.sh/thumb/${beatmap.beatmapset_id}l.jpg`,
+            maxCombo: beatmap.max_combo,
+            difficulty: beatmap.version,
+            cs: beatmap.cs,
+            ar: getAR(beatmap.ar, beatmapDifficulty, formattedMods.values),
+            od: getOD(beatmap.od, beatmapDifficulty, formattedMods.values),
+            hp: beatmap.hp,
+            bpm: formatBPM(beatmap),
+            duration: formatDuration(beatmap.total_length),
+            approval: formatApproval(beatmap.approved),
+            approvalDate: formatApprovalDate(beatmap.approved_date),
+         },
+         player: {
+            pp: {
+               raw: formatNumber(getNumeric(user.pp.raw)),
+               rank: formatNumber(getNumeric(user.pp.rank)),
+               countryRank: formatNumber(getNumeric(user.pp.countryRank)),
+            },
+            url: `https://osu.ppy.sh/users/${user.id}`,
+            name: `${user.name}`,
+            avatar: `https://a.ppy.sh/${user.id}`,
+            country: user.country,
+         },
+         mapper: {
+            name: `${beatmap.creator}`,
+            avatar: `https://a.ppy.sh/${beatmap.creator_id}`,
+         },
+      };
+   } catch (error) {
+      console.error(error);
+   }
+};
+
+export default { instance, getUserRecent, getUserBest, getUserBestBeatmap };

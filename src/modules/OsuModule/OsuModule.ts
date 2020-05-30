@@ -123,6 +123,62 @@ const recentPlay = (message: d.Message, username: string, number: number = 1) =>
    }
 };
 
+const bestBeatmapPlay = (message: d.Message, username: string, beatmapId: string) => {
+   OsuAPI.getUserBestBeatmap(username, beatmapId)
+      .then((recent) =>
+         message.channel.send(
+            new d.MessageEmbed()
+               .setAuthor(
+                  `${recent.player.name} : ${recent.player.pp.raw}pp | WR ${sep} #${recent.player.pp.rank} | ${recent.player.country} ${sep} #${recent.player.pp.countryRank}`,
+                  recent.player.avatar,
+                  recent.player.url,
+               )
+               .attachFiles(['src/data/chart.png'])
+               .setImage('attachment://chart.png')
+               .setDescription(
+                  `${recent.wr ? `***Record mondial #${recent.wr}***` : ''}${
+                     recent.wr && recent.pb ? ` ${sep} ` : ''
+                  }${recent.pb ? `***Record personnel #${recent.pb}***` : ''}`,
+               )
+               .setColor(colors[recent.rankEmoji])
+               .setTitle(`${recent.beatmap.artist} - ${recent.beatmap.name} [${recent.beatmap.difficulty}]`)
+               .setURL(recent.beatmap.url)
+               .setThumbnail(recent.beatmap.thumbnail)
+               .addField(
+                  `${getEmoji(message, recent.rankEmoji)}${
+                     recent.rankEmoji === 'RankF' ? `(${recent.progress}%)` : ''
+                  }${recent.mods ? ` ${sep} **${recent.mods}**` : ''} ${sep} ${recent.score} ${sep} ${
+                     recent.accuracy
+                  }% ${sep} ${recent.date}`,
+                  `**${recent.pp.score.pp}pp →** ${
+                     recent.pp.isFc ? `**FC**` : `${recent.pp.fc.pp}pp si ${recent.pp.fc.accuracy} FC`
+                  } ${sep} **${recent.maxCombo}x**/${recent.beatmap.maxCombo}x \n **${
+                     recent.counts[300]
+                  }**x300 ${sep} **${recent.counts[100]}**x100 ${sep} **${recent.counts[50]}**x50 ${sep} **${
+                     recent.counts['miss']
+                  }**xMiss`,
+               )
+               .addField(
+                  `Informations sur la map`,
+                  `${recent.beatmap.duration} ${sep} CS**${recent.beatmap.cs}** HP**${recent.beatmap.hp}** OD**${recent.beatmap.od}** AR**${recent.beatmap.ar}** ${sep} **${recent.beatmap.bpm}** BPM ${sep} **${recent.pp.score.stars} ★**`,
+               )
+               .setFooter(
+                  `Mappé par ${recent.mapper.name} ${sep} ${recent.beatmap.approval} le ${recent.beatmap.approvalDate}`,
+                  recent.mapper.avatar,
+               ),
+         ),
+      )
+      .catch(() =>
+         message.channel.send(
+            new d.MessageEmbed()
+               .setColor(colorOsu)
+               .setDescription(`\`${username}\` n'a jamais joué ou terminé cette map.`)
+               .setFooter(`JeckhysBot par マチュー`)
+               .setTimestamp(),
+         ),
+      );
+};
+
 const updateOsuUsername = (message: d.Message, args: string[]) => {
    const username = args.slice(1).join(' ');
    const discordId = message.author.id;
@@ -195,8 +251,8 @@ const handleMessage = (args: string[], message: d.Message, channels: string[] = 
             .setThumbnail('attachment://osu_logo.png')
             .setDescription(
                `\`${prefix}osu\` => Affiche l'aide relative à osu!
-					\`${prefix}osu best [1..10] [username]\` => Affiche les meilleurs scores
-					\`${prefix}osu recent [1..50] [username]\` => Affiche le score le plus récent
+						\`${prefix}osu best [1..10] [username]\` => Affiche les meilleurs scores
+						\`${prefix}osu recent [1..50] [username]\` => Affiche le score le plus récent
 						\`${prefix}osu username <username>\` => Associe ton username sur osu!`,
             )
             .setFooter(`JeckhysBot par マチュー`)
@@ -243,6 +299,25 @@ const handleMessage = (args: string[], message: d.Message, channels: string[] = 
             const username = args.slice(1).join(' ');
             bestPlays(message, username);
          }
+      }
+      // !osu beatmap <beatmapId>
+      else if (args.length === 2 && args[0] === 'beatmap') {
+         const discordId = message.author.id;
+         const user = datas.find((u) => u.discordId === discordId);
+
+         if (user) {
+            bestBeatmapPlay(message, user.username, args[1]);
+         } else {
+            message.reply(
+               `tu n'as aucun nom d'utilisateur osu! assigné. Utilise la commande \`${prefix}osu username <username>\` pour ça !`,
+            );
+         }
+      }
+      // !osu beatmap <beatmapId> [username]
+      else if (args.length >= 3 && args[0] === 'beatmap') {
+         const username = args.slice(2).join(' ');
+         const beatmapId = args[1];
+         bestBeatmapPlay(message, username, beatmapId);
       }
       // !osu ??? [...???]
       else {
