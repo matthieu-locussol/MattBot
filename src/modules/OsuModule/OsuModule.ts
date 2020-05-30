@@ -20,6 +20,44 @@ const colors = {
    RankX: 0xfef337,
    RankXH: 0xddfaff,
 };
+const colorOsu = '0xff4757';
+
+const bestPlays = (message: d.Message, username: string, number: number = 3) => {
+   if (number >= 1 && number <= 10) {
+      OsuAPI.getUserBest(username, number)
+         .then((recent) =>
+            message.channel.send(
+               new d.MessageEmbed()
+                  .setAuthor(
+                     `${recent.player.name} : ${recent.player.pp.raw}pp | WR ${sep} #${recent.player.pp.rank} | ${recent.player.country} ${sep} #${recent.player.pp.countryRank}`,
+                     `https://osu.ppy.sh/images/flags/${recent.player.country}.png`,
+                     recent.player.url,
+                  )
+                  .setColor(colorOsu)
+                  .setThumbnail(recent.player.avatar)
+                  .addFields(
+                     recent.scores.map((s) => ({
+                        name: `${getEmoji(message, s.rankEmoji)}${
+                           s.mods ? ` ${sep} **${s.mods}**` : ''
+                        } ${sep} ${s.beatmap.name}`,
+                        value: `**${s.pp}pp** ${sep} ${s.accuracy}% ${sep} [[${s.beatmap.difficulty}]](${s.beatmap.url}) ${sep} ${s.date}`,
+                     })),
+                  ),
+            ),
+         )
+         .catch(() =>
+            message.channel.send(
+               new d.MessageEmbed()
+                  .setColor(colorOsu)
+                  .setDescription('Problème dans la récupération des meilleurs scores...')
+                  .setFooter(`JeckhysBot par マチュー`)
+                  .setTimestamp(),
+            ),
+         );
+   } else {
+      message.reply('Je peux pas récupérer plus que tes 10 meilleurs scores !');
+   }
+};
 
 const recentPlay = (message: d.Message, username: string, number: number = 1) => {
    if (number >= 1 && number <= 50) {
@@ -72,7 +110,7 @@ const recentPlay = (message: d.Message, username: string, number: number = 1) =>
          .catch(() =>
             message.channel.send(
                new d.MessageEmbed()
-                  .setColor(0xff4757)
+                  .setColor(colorOsu)
                   .setDescription(
                      `\`${username}\` n'a pas joué récemment, ou a peut-être changé de pseudonyme ?`,
                   )
@@ -164,6 +202,46 @@ const handleMessage = (args: string[], message: d.Message, channels: string[] = 
             .setTimestamp();
 
          message.channel.send(answer);
+      }
+      // !osu best
+      else if (args.length === 1 && args[0] === 'best') {
+         const discordId = message.author.id;
+         const user = datas.find((u) => u.discordId === discordId);
+
+         if (user) {
+            bestPlays(message, user.username);
+         } else {
+            message.reply(
+               `tu n'as aucun nom d'utilisateur osu! assigné. Utilise la commande \`${prefix}osu username <username>\` pour ça !`,
+            );
+         }
+      }
+      // !osu best [number]
+      else if (args.length === 2 && args[0] === 'best' && /^\d+$/.test(args[1])) {
+         const discordId = message.author.id;
+         const user = datas.find((u) => u.discordId === discordId);
+
+         if (user) {
+            bestPlays(message, user.username, parseInt(args[1]));
+         } else {
+            message.reply(
+               `tu n'as aucun nom d'utilisateur osu! assigné. Utilise la commande \`${prefix}osu username <username>\` pour ça !`,
+            );
+         }
+      }
+      // !osu best [number] [username]
+      else if (args.length >= 2 && args[0] === 'best') {
+         // !osu best [number] [username]
+         if (/^\d+$/.test(args[1])) {
+            const number = parseInt(args[1]);
+            const username = args.slice(2).join(' ');
+            bestPlays(message, username, number);
+         }
+         // !osu best [username]
+         else {
+            const username = args.slice(1).join(' ');
+            bestPlays(message, username);
+         }
       }
       // !osu ??? [...???]
       else {

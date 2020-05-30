@@ -126,6 +126,7 @@ const formatWR = (score: nodeOsu.Score, mapScores: (string | number)[]) => {
    return wr;
 };
 
+const formatVersion = (version: string) => (version.length > 20 ? `${version.slice(0, 20)}...` : version);
 export interface OsuScore {
    id: string;
    pp: OsuScorePP;
@@ -180,6 +181,32 @@ export interface OsuScorePP {
       pp: string;
    };
    isFc: boolean;
+}
+
+export interface OsuBest {
+   player: {
+      pp: nodeOsu.UserPP;
+      url: string;
+      name: string;
+      avatar: string;
+      country: string;
+   };
+   scores: OsuBestScore[];
+}
+
+export interface OsuBestScore {
+   score: string | number;
+   accuracy: number;
+   rankEmoji: string;
+   date: string;
+   mods: string;
+   pp: number;
+   beatmap: {
+      url: string;
+      name: string;
+      artist: string;
+      difficulty: string;
+   };
 }
 
 const getScorePP = async (
@@ -298,4 +325,43 @@ const getUserRecent = async (username: string, number: number): Promise<OsuScore
    }
 };
 
-export default { instance, getUserRecent };
+const getUserBest = async (username: string, number: number): Promise<OsuBest> => {
+   const [user, best] = await Promise.all([
+      instance.getUser({ u: username }),
+      (async () => await instance.getUserBest({ u: username, limit: number }))(),
+   ]);
+
+   const maps = await Promise.all(
+      best.map((b) => (async () => await (await instanceBeatmaps.get(`/b/${b.beatmapId}`)).data.beatmap)()),
+   );
+
+   return {
+      player: {
+         pp: {
+            raw: formatNumber(getNumeric(user.pp.raw)),
+            rank: formatNumber(getNumeric(user.pp.rank)),
+            countryRank: formatNumber(getNumeric(user.pp.countryRank)),
+         },
+         url: `https://osu.ppy.sh/users/${user.id}`,
+         name: `${user.name}`,
+         avatar: `https://a.ppy.sh/${user.id}`,
+         country: user.country,
+      },
+      scores: best.map((b, i) => ({
+         score: b.score,
+         accuracy: formatAccuracy(computeAccuracy(b.counts)),
+         rankEmoji: `Rank${b.rank}`,
+         date: formatDate(b.date),
+         mods: formatMods(b.mods).mods,
+         pp: Math.round(getNumeric(b.pp)),
+         beatmap: {
+            url: `https://osu.ppy.sh/beatmaps/${b.beatmapId}`,
+            name: maps[i].title,
+            artist: maps[i].artist,
+            difficulty: formatVersion(maps[i].version),
+         },
+      })),
+   };
+};
+
+export default { instance, getUserRecent, getUserBest };
