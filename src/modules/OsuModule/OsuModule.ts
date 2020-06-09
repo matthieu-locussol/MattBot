@@ -42,7 +42,8 @@ const bestPlays = (message: d.Message, username: string, number: number = 3) => 
                         } ${sep} ${s.beatmap.name}`,
                         value: `**${s.pp}pp** ${sep} ${s.accuracy}% ${sep} [[${s.beatmap.difficulty}]](${s.beatmap.url}) ${sep} ${s.date}`,
                      })),
-                  ),
+                  )
+                  .setFooter(`JeckhysBot par マチュー`),
             ),
          )
          .catch(() =>

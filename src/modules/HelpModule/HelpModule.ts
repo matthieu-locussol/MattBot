@@ -11,7 +11,8 @@ const handleMessage = (args: string[], message: d.Message, channels: string[] = 
          .setColor(0xa4b0be)
          .setThumbnail('attachment://bot_avatar.png')
          .setDescription(
-            `\`${prefix}osu \` => Affiche l'aide relative à osu!
+            `\`${prefix}gif [description]\` => Affiche un gif
+            	\`${prefix}osu \` => Affiche l'aide relative à osu!
 					\`${prefix}help\` => Affiche ce message
 					\`${prefix}ping\` => Affiche le temps de latence du bot`,
          )

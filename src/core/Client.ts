@@ -1,6 +1,7 @@
 import * as d from 'discord.js';
 import Config from '../config/Config';
 import transformAlias from '../modules/alias';
+import handleGifModule from '../modules/GifModule/GifModule';
 import handleOsuModule from '../modules/OsuModule/OsuModule';
 import handleHelpModule from '../modules/HelpModule/HelpModule';
 import handlePingModule from '../modules/PingModule/PingModule';
@@ -59,6 +60,7 @@ export default class Client {
          const [command, ...args] = this.parseCommand(message.content);
 
          this.switchCommand(command, args, {
+            gif: () => handleGifModule(args, message),
             osu: () => handleOsuModule(args, message),
             help: () => handleHelpModule(args, message),
             ping: () => handlePingModule(args, message),
