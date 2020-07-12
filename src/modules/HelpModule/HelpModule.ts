@@ -7,7 +7,7 @@ const handleMessage = (args: string[], message: d.Message, channels: string[] = 
       const attachment = new d.MessageAttachment('src/assets/bot_avatar.png', 'bot_avatar.png');
       const answer = new d.MessageEmbed()
          .attachFiles([attachment])
-         .setTitle(`Commandes du JeckhysBot (préfixe: \`${prefix}\`)`)
+         .setTitle(`Commandes du MattBot (préfixe: \`${prefix}\`)`)
          .setColor(0xa4b0be)
          .setThumbnail('attachment://bot_avatar.png')
          .setDescription(
@@ -16,7 +16,7 @@ const handleMessage = (args: string[], message: d.Message, channels: string[] = 
 					\`${prefix}help\` => Affiche ce message
 					\`${prefix}ping\` => Affiche le temps de latence du bot`,
          )
-         .setFooter(`JeckhysBot par マチュー`)
+         .setFooter(`MattBot par マチュー`)
          .setTimestamp();
 
       message.channel.send(answer);

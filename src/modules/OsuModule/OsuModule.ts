@@ -43,7 +43,7 @@ const bestPlays = (message: d.Message, username: string, number: number = 3) => 
                         value: `**${s.pp}pp** ${sep} ${s.accuracy}% ${sep} [[${s.beatmap.difficulty}]](${s.beatmap.url}) ${sep} ${s.date}`,
                      })),
                   )
-                  .setFooter(`JeckhysBot par マチュー`),
+                  .setFooter(`MattBot par マチュー`),
             ),
          )
          .catch(() =>
@@ -51,7 +51,7 @@ const bestPlays = (message: d.Message, username: string, number: number = 3) => 
                new d.MessageEmbed()
                   .setColor(colorOsu)
                   .setDescription('Problème dans la récupération des meilleurs scores...')
-                  .setFooter(`JeckhysBot par マチュー`)
+                  .setFooter(`MattBot par マチュー`)
                   .setTimestamp(),
             ),
          );
@@ -115,7 +115,7 @@ const recentPlay = (message: d.Message, username: string, number: number = 1) =>
                   .setDescription(
                      `\`${username}\` n'a pas joué récemment, ou a peut-être changé de pseudonyme ?`,
                   )
-                  .setFooter(`JeckhysBot par マチュー`)
+                  .setFooter(`MattBot par マチュー`)
                   .setTimestamp(),
             ),
          );
@@ -174,7 +174,7 @@ const bestBeatmapPlay = (message: d.Message, username: string, beatmapId: string
             new d.MessageEmbed()
                .setColor(colorOsu)
                .setDescription(`\`${username}\` n'a jamais joué ou terminé cette map.`)
-               .setFooter(`JeckhysBot par マチュー`)
+               .setFooter(`MattBot par マチュー`)
                .setTimestamp(),
          ),
       );
@@ -257,7 +257,7 @@ const handleMessage = (args: string[], message: d.Message, channels: string[] = 
 						\`${prefix}osu beatmap <beatmapId> [username]\` => Affiche le meilleur score sur une map
 						\`${prefix}osu username <username>\` => Associe ton username sur osu!`,
             )
-            .setFooter(`JeckhysBot par マチュー`)
+            .setFooter(`MattBot par マチュー`)
             .setTimestamp();
 
          message.channel.send(answer);

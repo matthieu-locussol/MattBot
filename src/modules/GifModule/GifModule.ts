@@ -19,7 +19,7 @@ const handleMessage = (args: string[], message: d.Message, channels: string[] = 
                      .setDescription(
                         'Y a eu un problème dans la récupération du gif, le mot est peut-être censuré.',
                      )
-                     .setFooter(`JeckhysBot par マチュー`)
+                     .setFooter(`MattBot par マチュー`)
                      .setTimestamp(),
                ),
             );

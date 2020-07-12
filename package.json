@@ -1,8 +1,8 @@
 {
-   "name": "jeckhys-bot",
+   "name": "matt-bot",
    "private": true,
    "version": "1.0.0",
-   "description": "JeckhysBot for Discord",
+   "description": "MattBot for Discord",
    "license": "MIT",
    "scripts": {
       "start": "tsc && export $(cat .env) && node dist/app.js"

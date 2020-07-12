@@ -17,7 +17,7 @@ interface ClientOptions {
 const DefaultClientOptions: ClientOptions = {
    aliases: {},
    commandPrefix: Config.bot.prefix,
-   readyMessage: 'JeckhysBot is running...',
+   readyMessage: 'MattBot is running...',
 };
 
 export default class Client {
