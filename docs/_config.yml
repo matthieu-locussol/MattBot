@@ -1,0 +1,9 @@
+theme: jekyll-theme-cayman
+version: 1.0.0
+name: MattBot
+description: MattBot is a multipurpose Discord bot written using Typescript.
+url: https://matthieu-locussol.github.io/MattBot
+repository: https://github.com/matthieu-locussol/MattBot
+show_downloads: true
+github:
+   invite_link: https://discord.com/oauth2/authorize?client_id=438464338936987649&scope=bot&permissions=66583360
