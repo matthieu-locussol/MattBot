@@ -4,3 +4,4 @@ node_modules
 yarn.lock
 .env
 src/data/chart.png
+src/data/osu.json

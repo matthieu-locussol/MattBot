@@ -46,12 +46,14 @@ const formatMods = (mods: string[]) => {
    let valuesMods = 0;
    let formattedMods = '+';
 
+   console.log('mods', mods);
+
    mods.includes('NoFail') && (formattedMods += 'NF');
    mods.includes('Easy') && (formattedMods += 'EZ') && (valuesMods += modsBitset.Easy);
    mods.includes('Hidden') && (formattedMods += 'HD');
    mods.includes('HardRock') && (formattedMods += 'HR') && (valuesMods += modsBitset.HardRock);
    mods.includes('HalfTime') && (formattedMods += 'HT') && (valuesMods += modsBitset.HalfTime);
-   mods.includes('FlashLight') && (formattedMods += 'FL');
+   mods.includes('Flashlight') && (formattedMods += 'FL');
    mods.includes('SpunOut') && (formattedMods += 'SO');
 
    if (mods.includes('DoubleTime') && mods.includes('Nightcore')) {
