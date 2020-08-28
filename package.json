@@ -8,6 +8,7 @@
       "start": "tsc && export $(cat .env) && node dist/app.js"
    },
    "dependencies": {
+      "@discordjs/opus": "^0.3.2",
       "@types/chart.js": "^2.9.21",
       "@types/child-process-promise": "^2.2.1",
       "@types/node": "^13.13.4",
@@ -16,10 +17,12 @@
       "chartjs-node-canvas": "^3.0.6",
       "child-process-promise": "^2.2.1",
       "discord.js": "^12.2.0",
+      "ffmpeg": "^0.0.4",
       "moment": "^2.25.3",
       "node-osu": "^2.2.0",
       "ojsama": "^1.2.5",
       "timeago.js": "^4.0.2",
-      "typescript": "^3.8.3"
+      "typescript": "^3.8.3",
+      "ytdl-core": "^3.2.2"
    }
 }

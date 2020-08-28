@@ -4,6 +4,7 @@ import transformAlias from '../modules/alias';
 import handleGifModule from '../modules/GifModule/GifModule';
 import handleOsuModule from '../modules/OsuModule/OsuModule';
 import handleHelpModule from '../modules/HelpModule/HelpModule';
+import handleMusicModule from '../modules/MusicModule/MusicModule';
 import handlePingModule from '../modules/PingModule/PingModule';
 import handle____Module from '../modules/____Module/____Module';
 import handleReactModule from '../modules/ReactModule/ReactModule';
@@ -64,6 +65,7 @@ export default class Client {
             osu: () => handleOsuModule(args, message),
             help: () => handleHelpModule(args, message),
             ping: () => handlePingModule(args, message),
+            music: () => handleMusicModule(args, message),
          });
       }
    }
