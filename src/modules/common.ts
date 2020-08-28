@@ -36,4 +36,6 @@ const loadData: any = (filename: string) => JSON.parse(fs.readFileSync(`src/data
 const saveData = (filename: string, data: any) =>
    fs.writeFileSync(`src/data/${filename}`, JSON.stringify(data, null, 3));
 
-export { getEmoji, canAnswer, loadData, saveData };
+const isNotDM = (message: d.Message) => message.channel.type !== 'dm';
+
+export { getEmoji, canAnswer, loadData, saveData, isNotDM };

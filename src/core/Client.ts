@@ -24,11 +24,13 @@ const DefaultClientOptions: ClientOptions = {
 export default class Client {
    private token: string;
    private options: ClientOptions;
+   private dispatcher: d.StreamDispatcher;
    private discordClient: d.Client;
 
    constructor(options?: ClientOptions, token: string = Config.api.key.discord) {
       this.token = token;
       this.options = { ...DefaultClientOptions, ...options };
+      this.dispatcher = null;
       this.discordClient = new d.Client();
    }
 
@@ -37,6 +39,10 @@ export default class Client {
       this.discordClient.on('message', (message) => this.handleMessage(message));
       this.discordClient.on('messageReactionAdd', (reaction, user) =>
          this.handleMessageReaction(reaction, user),
+      );
+      this.discordClient.on(
+         'voiceStateUpdate',
+         (_, newState) => !newState.channel && this.setDispatcher(null),
       );
       this.discordClient.login(this.token);
    }
@@ -53,7 +59,13 @@ export default class Client {
       Object.keys(cases).includes(command) && cases[command]();
    }
 
+   private setDispatcher(dispatcher: d.StreamDispatcher) {
+      this.dispatcher = dispatcher;
+   }
+
    private handleMessage(message: d.Message) {
+      console.log(`[DEBUG] ${message.content}`);
+
       const isCommand = this.isCommand(message.content[0]);
 
       if (isCommand) {
@@ -65,7 +77,7 @@ export default class Client {
             osu: () => handleOsuModule(args, message),
             help: () => handleHelpModule(args, message),
             ping: () => handlePingModule(args, message),
-            music: () => handleMusicModule(args, message),
+            music: () => handleMusicModule(args, message, this.dispatcher, this.setDispatcher.bind(this)),
          });
       }
    }

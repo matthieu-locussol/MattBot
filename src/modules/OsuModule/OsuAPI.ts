@@ -46,8 +46,6 @@ const formatMods = (mods: string[]) => {
    let valuesMods = 0;
    let formattedMods = '+';
 
-   console.log('mods', mods);
-
    mods.includes('NoFail') && (formattedMods += 'NF');
    mods.includes('Easy') && (formattedMods += 'EZ') && (valuesMods += modsBitset.Easy);
    mods.includes('Hidden') && (formattedMods += 'HD');
