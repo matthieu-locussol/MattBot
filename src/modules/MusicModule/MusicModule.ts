@@ -1,38 +1,28 @@
 import * as d from 'discord.js';
-import * as ytdl from 'ytdl-core';
 import { canAnswer, isNotDM } from '../common';
-import * as musicSettings from '../../data/music.json';
+import MusicManager from '../../core/MusicManager';
 
 const YOUTUBE_REGEX = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/;
 
 const isYoutube = (link: string) => YOUTUBE_REGEX.test(link);
-// const linkYoutube = (link: string) => `https://www.youtube.com/watch?v=${YOUTUBE_REGEX.exec(link)[1]}`;
 
-const updateVolume = (message: d.Message, dispatcher: d.StreamDispatcher, volume: number) => {
+const updateVolume = (message: d.Message, musicManager: MusicManager, volume: number) => {
    if (volume >= 0 && volume <= 10) {
-      dispatcher.setVolumeLogarithmic(volume / 10);
+      musicManager.setVolume(volume);
       message.reply(`Volume mis à jour sur : ${volume}/10.`);
    } else {
       message.reply('Le volume doit être compris entre 0 et 10.');
    }
 };
 
-const playMusic = (
-   url: string,
-   message: d.Message,
-   dispatcher: d.StreamDispatcher,
-   setDispatcher: (dispatcher: d.StreamDispatcher) => any,
-) => {
+const playMusic = (url: string, message: d.Message, musicManager: MusicManager) => {
    const prefix = message.content[0];
    const voiceChannel = message.member.voice.channel;
 
    if (voiceChannel) {
-      if (!dispatcher) {
-         voiceChannel.join().then((connection) => {
-            const stream = ytdl(url, { filter: 'audioonly', highWaterMark: 1 << 25 });
-            dispatcher = connection.play(stream);
-
-            initDispatcher(dispatcher, setDispatcher);
+      if (!musicManager.isPlaying()) {
+         musicManager.join(voiceChannel).then(() => {
+            musicManager.playYoutube(url);
          });
       } else {
          message.reply(
@@ -44,48 +34,38 @@ const playMusic = (
    }
 };
 
-const playMusicForce = (
-   url: string,
-   message: d.Message,
-   dispatcher: d.StreamDispatcher,
-   setDispatcher: (dispatcher: d.StreamDispatcher) => any,
-) => {
-   if (dispatcher) {
-      dispatcher.end();
-   }
-
-   playMusic(url, message, null, setDispatcher);
-};
-
-const initDispatcher = (
-   dispatcher: d.StreamDispatcher,
-   setDispatcher: (dispatcher: d.StreamDispatcher) => any,
-) => {
-   dispatcher.setVolumeLogarithmic(musicSettings.defaultVolume / 10);
-   dispatcher.on('finish', () => setDispatcher(null));
-
-   setDispatcher(dispatcher);
+const playMusicForce = (url: string, message: d.Message, musicManager: MusicManager) => {
+   musicManager.stop();
+   playMusic(url, message, musicManager);
 };
 
 const handleMessage = (
    args: string[],
    message: d.Message,
-   dispatcher: d.StreamDispatcher,
-   setDispatcher: (dispatcher: d.StreamDispatcher) => any,
+   musicManager: MusicManager,
    channels: string[] = [],
 ) => {
    if (canAnswer(message, channels) && isNotDM(message)) {
+      const prefix = message.content[0];
       // !music volume <number>
       if (args.length === 2 && args[0] === 'volume') {
          const volume = parseInt(args[1]);
-         updateVolume(message, dispatcher, volume);
+         updateVolume(message, musicManager, volume);
+      }
+      // !music break
+      else if (args.length === 1 && args[0] === 'break') {
+         musicManager.pause();
+      }
+      // !music resume
+      else if (args.length === 1 && args[0] === 'resume') {
+         musicManager.resume();
       }
       // !music play <link>
       else if (args.length === 2 && args[0] === 'play') {
          const url = args[1];
 
          if (isYoutube(url)) {
-            playMusic(url, message, dispatcher, setDispatcher);
+            playMusic(url, message, musicManager);
          }
       }
       // !music play force <link>
@@ -93,8 +73,36 @@ const handleMessage = (
          const url = args[2];
 
          if (isYoutube(url)) {
-            playMusicForce(url, message, dispatcher, setDispatcher);
+            playMusicForce(url, message, musicManager);
          }
+      }
+      // !music
+      else if (args.length === 0) {
+         const attachment = new d.MessageAttachment('src/assets/music/music_avatar.png', 'music_avatar.png');
+         const answer = new d.MessageEmbed()
+            .attachFiles([attachment])
+            .setTitle(`Commandes liées à la musique`)
+            .setColor(0x6b81ff)
+            .setThumbnail('attachment://music_avatar.png')
+            .setDescription(
+               `\`${prefix}music\` => Affiche l'aide relative à la musique
+					   \`${prefix}music play <link>\` => Joue une musique
+					   \`${prefix}music play force <link>\` => Remplace la musique actuellement en cours
+					   \`${prefix}music volume <1..10>\` => Change le volume du bot`,
+            )
+            .setFooter(`MattBot par マチュー`)
+            .setTimestamp();
+
+         message.channel.send(answer);
+      }
+      // !music ??? [...???]
+      else {
+         const answer = new d.MessageEmbed()
+            .setDescription(`Commande \`${prefix}music\` introuvable : \`${message.content}\``)
+            .setFooter(`Pour voir les commandes existantes, tape : ${prefix}music`)
+            .setTimestamp();
+
+         message.channel.send(answer);
       }
    }
 };

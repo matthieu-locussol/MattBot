@@ -1,3 +1,4 @@
 {
-   "defaultVolume": 3
+   "defaultVolume": 3,
+   "maxVolume": 10
 }

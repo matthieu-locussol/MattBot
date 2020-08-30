@@ -14,7 +14,8 @@ const handleMessage = (args: string[], message: d.Message, channels: string[] = 
             `\`${prefix}gif [description]\` => Affiche un gif
             	\`${prefix}osu \` => Affiche l'aide relative à osu!
 					\`${prefix}help\` => Affiche ce message
-					\`${prefix}ping\` => Affiche le temps de latence du bot`,
+					\`${prefix}ping\` => Affiche le temps de latence du bot
+					\`${prefix}music\` => Affiche l'aide relative à la musique`,
          )
          .setFooter(`MattBot par マチュー`)
          .setTimestamp();

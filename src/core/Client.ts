@@ -8,6 +8,7 @@ import handleMusicModule from '../modules/MusicModule/MusicModule';
 import handlePingModule from '../modules/PingModule/PingModule';
 import handle____Module from '../modules/____Module/____Module';
 import handleReactModule from '../modules/ReactModule/ReactModule';
+import MusicManager from './MusicManager';
 
 interface ClientOptions {
    aliases: Record<string, string>;
@@ -26,12 +27,13 @@ export default class Client {
    private options: ClientOptions;
    private dispatcher: d.StreamDispatcher;
    private discordClient: d.Client;
+   private musicManager: MusicManager;
 
    constructor(options?: ClientOptions, token: string = Config.api.key.discord) {
       this.token = token;
       this.options = { ...DefaultClientOptions, ...options };
-      this.dispatcher = null;
       this.discordClient = new d.Client();
+      this.musicManager = new MusicManager();
    }
 
    public run() {
@@ -40,10 +42,10 @@ export default class Client {
       this.discordClient.on('messageReactionAdd', (reaction, user) =>
          this.handleMessageReaction(reaction, user),
       );
-      this.discordClient.on(
-         'voiceStateUpdate',
-         (_, newState) => !newState.channel && this.setDispatcher(null),
-      );
+      // this.discordClient.on(
+      //    'voiceStateUpdate',
+      //    (_, newState) => !newState.channel && this.setDispatcher(null),
+      // );
       this.discordClient.login(this.token);
    }
 
@@ -59,13 +61,7 @@ export default class Client {
       Object.keys(cases).includes(command) && cases[command]();
    }
 
-   private setDispatcher(dispatcher: d.StreamDispatcher) {
-      this.dispatcher = dispatcher;
-   }
-
    private handleMessage(message: d.Message) {
-      console.log(`[DEBUG] ${message.content}`);
-
       const isCommand = this.isCommand(message.content[0]);
 
       if (isCommand) {
@@ -77,7 +73,7 @@ export default class Client {
             osu: () => handleOsuModule(args, message),
             help: () => handleHelpModule(args, message),
             ping: () => handlePingModule(args, message),
-            music: () => handleMusicModule(args, message, this.dispatcher, this.setDispatcher.bind(this)),
+            music: () => handleMusicModule(args, message, this.musicManager),
          });
       }
    }
