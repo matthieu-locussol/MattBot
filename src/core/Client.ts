@@ -8,7 +8,10 @@ import handleMusicModule from '../modules/MusicModule/MusicModule';
 import handlePingModule from '../modules/PingModule/PingModule';
 import handle____Module from '../modules/____Module/____Module';
 import handleReactModule from '../modules/ReactModule/ReactModule';
+import handleYoutube from '../modules/YoutubeModule/YoutubeModule';
+import handleYoutubePlay from '../modules/YoutubeModule/YoutubePlayModule';
 import MusicManager from './MusicManager';
+import { isYoutube } from '../modules/common';
 
 interface ClientOptions {
    aliases: Record<string, string>;
@@ -42,10 +45,6 @@ export default class Client {
       this.discordClient.on('messageReactionAdd', (reaction, user) =>
          this.handleMessageReaction(reaction, user),
       );
-      // this.discordClient.on(
-      //    'voiceStateUpdate',
-      //    (_, newState) => !newState.channel && this.setDispatcher(null),
-      // );
       this.discordClient.login(this.token);
    }
 
@@ -75,11 +74,14 @@ export default class Client {
             ping: () => handlePingModule(args, message),
             music: () => handleMusicModule(args, message, this.musicManager),
          });
+      } else {
+         if (isYoutube(message.content)) handleYoutube(message);
       }
    }
 
    private handleMessageReaction(reaction: d.MessageReaction, user: d.User | d.PartialUser) {
       handle____Module(reaction, user);
       handleReactModule(reaction, user);
+      handleYoutubePlay(reaction, user, this.musicManager);
    }
 }

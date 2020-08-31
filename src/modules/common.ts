@@ -2,6 +2,9 @@ import * as d from 'discord.js';
 import * as fs from 'fs';
 import * as timeago from 'timeago.js';
 
+const YOUTUBE_REGEX = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/;
+const isYoutube = (link: string) => YOUTUBE_REGEX.test(link);
+
 const locale = (number: number, index: number, totalSec: number): [string, string] => {
    return [
       ["À l'instant", 'dans un instant'],
@@ -38,4 +41,4 @@ const saveData = (filename: string, data: any) =>
 
 const isNotDM = (message: d.Message) => message.channel.type !== 'dm';
 
-export { getEmoji, canAnswer, loadData, saveData, isNotDM };
+export { getEmoji, canAnswer, loadData, saveData, isNotDM, isYoutube };

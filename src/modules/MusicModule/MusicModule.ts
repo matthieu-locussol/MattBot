@@ -1,10 +1,7 @@
 import * as d from 'discord.js';
 import { canAnswer, isNotDM } from '../common';
 import MusicManager from '../../core/MusicManager';
-
-const YOUTUBE_REGEX = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/;
-
-const isYoutube = (link: string) => YOUTUBE_REGEX.test(link);
+import { isYoutube } from '../common';
 
 const updateVolume = (message: d.Message, musicManager: MusicManager, volume: number) => {
    if (volume >= 0 && volume <= 10) {
@@ -15,8 +12,8 @@ const updateVolume = (message: d.Message, musicManager: MusicManager, volume: nu
    }
 };
 
-const playMusic = (url: string, message: d.Message, musicManager: MusicManager) => {
-   const prefix = message.content[0];
+export const playMusic = (url: string, message: d.Message, musicManager: MusicManager) => {
+   const prefix = message.content[0] === 'h' ? '!' : message.content[0];
    const voiceChannel = message.member.voice.channel;
 
    if (voiceChannel) {
