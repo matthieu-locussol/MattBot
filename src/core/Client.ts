@@ -28,7 +28,6 @@ const DefaultClientOptions: ClientOptions = {
 export default class Client {
    private token: string;
    private options: ClientOptions;
-   private dispatcher: d.StreamDispatcher;
    private discordClient: d.Client;
    private musicManager: MusicManager;
 
@@ -44,6 +43,10 @@ export default class Client {
       this.discordClient.on('message', (message) => this.handleMessage(message));
       this.discordClient.on('messageReactionAdd', (reaction, user) =>
          this.handleMessageReaction(reaction, user),
+      );
+      this.discordClient.on(
+         'voiceStateUpdate',
+         (_, newState) => !newState.channel && this.musicManager.stop(),
       );
       this.discordClient.login(this.token);
    }

@@ -12,6 +12,32 @@ const updateVolume = (message: d.Message, musicManager: MusicManager, volume: nu
    }
 };
 
+export const upVolume = (
+   channel: d.TextChannel | d.DMChannel | d.NewsChannel,
+   musicManager: MusicManager,
+) => {
+   if (musicManager.getVolume() < 10) {
+      const volume = musicManager.getVolume() + 1;
+      musicManager.setVolume(volume);
+      channel.send(`Volume mis à jour sur : ${volume}/10.`);
+   } else {
+      channel.send('Le volume est déjà au maximum.');
+   }
+};
+
+export const downVolume = (
+   channel: d.TextChannel | d.DMChannel | d.NewsChannel,
+   musicManager: MusicManager,
+) => {
+   if (musicManager.getVolume() > 0) {
+      const volume = musicManager.getVolume() - 1;
+      musicManager.setVolume(volume);
+      channel.send(`Volume mis à jour sur : ${volume}/10.`);
+   } else {
+      channel.send('Le volume est déjà au minimum.');
+   }
+};
+
 export const playMusic = (url: string, message: d.Message, musicManager: MusicManager) => {
    const prefix = message.content[0] === 'h' ? '!' : message.content[0];
    const voiceChannel = message.member.voice.channel;

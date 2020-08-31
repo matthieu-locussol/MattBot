@@ -5,12 +5,14 @@ import * as musicSettings from '../data/music.json';
 export default class MusicManager {
    private play: boolean;
    private queue: Array<string>;
+   private volume: number;
    private connection: d.VoiceConnection;
    private dispatcher: d.StreamDispatcher;
 
    constructor() {
       this.play = false;
       this.queue = [];
+      this.volume = musicSettings.defaultVolume;
       this.connection = null;
       this.dispatcher = null;
    }
@@ -22,13 +24,16 @@ export default class MusicManager {
    public leave = () => {
       this.queue = [];
       this.connection.disconnect();
-      this.dispatcher.end();
+      this.stop();
    };
    public isInVocal = () => {
       return this.connection !== null;
    };
+   public isPaused = () => {
+      return !this.play && this.dispatcher !== null;
+   };
    public isPlaying = () => {
-      return this.dispatcher !== null;
+      return this.play;
    };
 
    public initDispatcher = () => {
@@ -48,6 +53,8 @@ export default class MusicManager {
          this.dispatcher.end();
          this.dispatcher = null;
       }
+
+      this.play = false;
    };
    public pause = () => {
       if (this.play) {
@@ -61,7 +68,11 @@ export default class MusicManager {
          this.dispatcher.resume();
       }
    };
+   public getVolume = () => {
+      return this.volume;
+   };
    public setVolume = (volume: number) => {
+      this.volume = volume;
       this.dispatcher.setVolumeLogarithmic(volume / musicSettings.maxVolume);
    };
 
