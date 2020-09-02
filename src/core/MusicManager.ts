@@ -77,7 +77,10 @@ export default class MusicManager {
    };
 
    public playYoutube = (link: string) => {
-      const stream = ytdl(link, { filter: 'audioonly', highWaterMark: 1 << 25 });
+      const options: ytdl.downloadOptions = {
+         highWaterMark: 1 << 25,
+      };
+      const stream = ytdl(link, options);
       this.dispatcher = this.connection.play(stream);
       this.play = true;
 

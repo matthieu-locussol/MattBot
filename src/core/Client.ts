@@ -44,9 +44,8 @@ export default class Client {
       this.discordClient.on('messageReactionAdd', (reaction, user) =>
          this.handleMessageReaction(reaction, user),
       );
-      this.discordClient.on(
-         'voiceStateUpdate',
-         (_, newState) => !newState.channel && this.musicManager.stop(),
+      this.discordClient.on('voiceStateUpdate', (oldState, newState) =>
+         this.handleVoiceStateUpdate(oldState, newState),
       );
       this.discordClient.login(this.token);
    }
@@ -75,16 +74,22 @@ export default class Client {
             osu: () => handleOsuModule(args, message),
             help: () => handleHelpModule(args, message),
             ping: () => handlePingModule(args, message),
-            music: () => handleMusicModule(args, message, this.musicManager),
+            music: () => handleMusicModule(args, message, this.musicManager, ['playlists']),
          });
       } else {
-         if (isYoutube(message.content)) handleYoutube(message);
+         if (isYoutube(message.content)) handleYoutube(message, ['playlists']);
       }
    }
 
    private handleMessageReaction(reaction: d.MessageReaction, user: d.User | d.PartialUser) {
       handle____Module(reaction, user);
       handleReactModule(reaction, user);
-      handleYoutubePlay(reaction, user, this.musicManager);
+      handleYoutubePlay(reaction, user, this.musicManager, ['playlists']);
+   }
+
+   private handleVoiceStateUpdate(oldState: d.VoiceState, newState: d.VoiceState) {
+      if (newState.member.id === this.discordClient.user.id && !newState.channel) {
+         this.musicManager.stop();
+      }
    }
 }
