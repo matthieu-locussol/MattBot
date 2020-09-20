@@ -57,7 +57,7 @@ export const playMusic = (url: string, message: d.Message, musicManager: MusicMa
    }
 };
 
-const playMusicForce = (url: string, message: d.Message, musicManager: MusicManager) => {
+export const playMusicForce = (url: string, message: d.Message, musicManager: MusicManager) => {
    musicManager.stop();
    playMusic(url, message, musicManager);
 };

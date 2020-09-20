@@ -3,7 +3,11 @@ import * as fs from 'fs';
 import * as timeago from 'timeago.js';
 
 const YOUTUBE_REGEX = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/;
+const YOUTUBE_PLAYLIST_REGEX = /^.*(youtu.be\/|list=)([^#\&\?]*).*/;
+
 const isYoutube = (link: string) => YOUTUBE_REGEX.test(link);
+const isYoutubePlaylist = (link: string) => YOUTUBE_PLAYLIST_REGEX.test(link);
+const getYoutubePlaylistId = (link: string) => YOUTUBE_PLAYLIST_REGEX.exec(link)[2];
 
 const locale = (number: number, index: number, totalSec: number): [string, string] => {
    return [
@@ -41,4 +45,23 @@ const saveData = (filename: string, data: any) =>
 
 const isNotDM = (message: d.Message) => message.channel.type !== 'dm';
 
-export { getEmoji, canAnswer, loadData, saveData, isNotDM, isYoutube };
+const getNumberFromEmoji = (name: string) =>
+   ({
+      '1️⃣': 1,
+      '2️⃣': 2,
+      '3️⃣': 3,
+      '4️⃣': 4,
+      '5️⃣': 5,
+   }[name]);
+
+export {
+   getEmoji,
+   canAnswer,
+   loadData,
+   saveData,
+   isNotDM,
+   isYoutube,
+   isYoutubePlaylist,
+   getYoutubePlaylistId,
+   getNumberFromEmoji,
+};

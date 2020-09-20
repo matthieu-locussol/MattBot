@@ -6,6 +6,7 @@ export default class MusicManager {
    private play: boolean;
    private queue: Array<string>;
    private volume: number;
+   private channels: string[];
    private connection: d.VoiceConnection;
    private dispatcher: d.StreamDispatcher;
 
@@ -13,6 +14,7 @@ export default class MusicManager {
       this.play = false;
       this.queue = [];
       this.volume = musicSettings.defaultVolume;
+      this.channels = ['playlists', 'dev-bot'];
       this.connection = null;
       this.dispatcher = null;
    }
@@ -39,7 +41,10 @@ export default class MusicManager {
    public initDispatcher = () => {
       this.setVolume(musicSettings.defaultVolume);
       // On finish: if music left in queue ; play it ; otherwise setDispatcher(null)
-      this.dispatcher.on('finish', () => this.setDispatcher(null));
+      this.dispatcher.on('finish', () => {
+         this.play = false;
+         this.setDispatcher(null);
+      });
    };
    public getDispatcher = () => {
       return this.dispatcher;
@@ -86,4 +91,6 @@ export default class MusicManager {
 
       this.initDispatcher();
    };
+
+   public getChannels = () => this.channels;
 }
