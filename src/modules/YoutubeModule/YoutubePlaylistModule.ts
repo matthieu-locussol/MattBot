@@ -14,7 +14,7 @@ const parsePlaylistVideos = (data: any) =>
       link: `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
    }));
 
-export const playlistEmbed = (title: string, link: string, data: any) => {
+export const playlistEmbed = (infos: any, link: string, data: any) => {
    let nextPage = data.nextPageToken ? data.nextPageToken : '';
    let previousPage = data.prevPageToken ? data.prevPageToken : '';
    let videos = parsePlaylistVideos(data);
@@ -22,7 +22,7 @@ export const playlistEmbed = (title: string, link: string, data: any) => {
    const attachment = new d.MessageAttachment('src/assets/music/youtube.png', 'youtube.png');
 
    return new d.MessageEmbed({
-      title,
+      title: infos.title,
       url: link,
       description: `${previousPage}:${nextPage}`,
       fields: videos.map((video: any, index: number) => ({
@@ -32,7 +32,8 @@ export const playlistEmbed = (title: string, link: string, data: any) => {
       footer: { text: 'Utilise les boutons pour changer la musique' },
    })
       .attachFiles([attachment])
-      .setThumbnail('attachment://youtube.png');
+      .setThumbnail('attachment://youtube.png')
+      .setImage(infos.picture);
 };
 
 export const getPlaylistData = async (id: string, page?: string) => {
@@ -49,7 +50,7 @@ export const getPlaylistData = async (id: string, page?: string) => {
    return response.data;
 };
 
-export const getYoutubePlaylistTitle = async (id: string) => {
+export const getYoutubePlaylistInfos = async (id: string) => {
    const response = await instance.get(Config.api.endpoint.youtubePlaylistName, {
       params: {
          part: 'snippet',
@@ -58,7 +59,10 @@ export const getYoutubePlaylistTitle = async (id: string) => {
       },
    });
 
-   return response.data.items[0].snippet.title;
+   return {
+      title: response.data.items[0].snippet.title,
+      picture: response.data.items[0].snippet.thumbnails.maxres.url,
+   };
 };
 
 export const getLinkFromField = (field: d.EmbedField) => field.value.split('(')[1].split(')')[0];
@@ -77,11 +81,11 @@ const handleMessage = (message: d.Message, channels: string[] = []) => {
 
       getPlaylistData(id)
          .then((data) => {
-            getYoutubePlaylistTitle(id)
-               .then((title: string) => {
+            getYoutubePlaylistInfos(id)
+               .then((infos) => {
                   message.delete();
                   message.channel
-                     .send(playlistEmbed(title, link, data))
+                     .send(playlistEmbed(infos, link, data))
                      .then((message) =>
                         message
                            .react('⬅️')

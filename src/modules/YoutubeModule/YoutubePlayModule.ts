@@ -6,7 +6,7 @@ import {
    playlistEmbed,
    getLinkFromField,
    getPlaylistData,
-   getYoutubePlaylistTitle,
+   getYoutubePlaylistInfos,
 } from '../YoutubeModule/YoutubePlaylistModule';
 
 const removeReaction = (message: d.Message, user: d.User | d.PartialUser) => {
@@ -50,16 +50,16 @@ export const handleMessageReaction = (
                const id = getYoutubePlaylistId(embed.url);
 
                getPlaylistData(id, tokens[0]).then((data) =>
-                  getYoutubePlaylistTitle(id).then((title) =>
-                     message.edit(playlistEmbed(title, embed.url, data)),
+                  getYoutubePlaylistInfos(id).then((infos) =>
+                     message.edit(playlistEmbed(infos, embed.url, data)),
                   ),
                );
             } else if (emoji.name === '➡️') {
                const id = getYoutubePlaylistId(embed.url);
 
                getPlaylistData(id, tokens[1]).then((data) =>
-                  getYoutubePlaylistTitle(id).then((title) =>
-                     message.edit(playlistEmbed(title, embed.url, data)),
+                  getYoutubePlaylistInfos(id).then((infos) =>
+                     message.edit(playlistEmbed(infos, embed.url, data)),
                   ),
                );
             } else if (emoji.name === 'play') {
