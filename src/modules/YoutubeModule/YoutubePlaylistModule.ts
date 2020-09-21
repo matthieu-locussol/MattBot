@@ -24,6 +24,7 @@ export const playlistEmbed = (infos: any, link: string, data: any) => {
    return new d.MessageEmbed({
       title: infos.title,
       url: link,
+      color: '#ff0000',
       description: `${previousPage}:${nextPage}`,
       fields: videos.map((video: any, index: number) => ({
          name: `${index + 1} - ${video.title}`,
