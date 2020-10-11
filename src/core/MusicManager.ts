@@ -4,19 +4,25 @@ import * as musicSettings from '../data/music.json';
 
 export default class MusicManager {
    private play: boolean;
-   private queue: Array<string>;
    private volume: number;
    private channels: string[];
    private connection: d.VoiceConnection;
    private dispatcher: d.StreamDispatcher;
 
+   private skipped: boolean;
+   private queue: string[];
+   private queueCurrent: number | null;
+
    constructor() {
       this.play = false;
-      this.queue = [];
       this.volume = musicSettings.defaultVolume;
       this.channels = ['playlists', 'dev-bot'];
       this.connection = null;
       this.dispatcher = null;
+
+      this.skipped = false;
+      this.queue = [];
+      this.queueCurrent = null;
    }
 
    public join = async (voiceChannel: d.VoiceChannel) => {
@@ -39,11 +45,18 @@ export default class MusicManager {
    };
 
    public initDispatcher = () => {
-      this.setVolume(musicSettings.defaultVolume);
-      // On finish: if music left in queue ; play it ; otherwise setDispatcher(null)
+      this.setVolume(musicSettings.defaultVolume); // this.volume || ...
       this.dispatcher.on('finish', () => {
          this.play = false;
          this.setDispatcher(null);
+
+         if (this.skipped) {
+            this.skipped = false;
+         } else {
+            if (this.queue.length !== 0) {
+               this.playPlaylist();
+            }
+         }
       });
    };
    public getDispatcher = () => {
@@ -53,7 +66,11 @@ export default class MusicManager {
       this.dispatcher = dispatcher;
    };
 
-   public stop = () => {
+   public stop = (erasePlaylist = true) => {
+      if (erasePlaylist) {
+         this.clearPlaylist();
+      }
+
       if (this.dispatcher) {
          this.dispatcher.end();
          this.dispatcher = null;
@@ -81,7 +98,11 @@ export default class MusicManager {
       this.dispatcher.setVolumeLogarithmic(volume / musicSettings.maxVolume);
    };
 
-   public playYoutube = (link: string) => {
+   public playYoutube = (link: string, erasePlaylist = true) => {
+      if (erasePlaylist) {
+         this.clearPlaylist();
+      }
+
       const options: ytdl.downloadOptions = {
          highWaterMark: 1 << 25,
       };
@@ -90,6 +111,27 @@ export default class MusicManager {
       this.play = true;
 
       this.initDispatcher();
+   };
+   public setPlaylist = (links: string[], voiceChannel: d.VoiceChannel) => {
+      this.join(voiceChannel).then(() => {
+         this.queue = links;
+         this.queueCurrent = 0;
+         this.playPlaylist();
+      });
+   };
+   public clearPlaylist = () => {
+      this.queue = [];
+      this.queueCurrent = null;
+   };
+   public playPlaylist = () => {
+      const link = this.queue[this.queueCurrent];
+      this.queueCurrent = (this.queueCurrent + 1) % this.queue.length;
+      this.playYoutube(link, false);
+   };
+   public skip = () => {
+      this.skipped = true;
+      this.stop(false);
+      this.playPlaylist();
    };
 
    public getChannels = () => this.channels;

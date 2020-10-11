@@ -7,6 +7,7 @@ import {
    getLinkFromField,
    getPlaylistData,
    getYoutubePlaylistInfos,
+   getAllPlaylistData,
 } from '../YoutubeModule/YoutubePlaylistModule';
 
 const removeReaction = (message: d.Message, user: d.User | d.PartialUser) => {
@@ -62,6 +63,13 @@ export const handleMessageReaction = (
                      message.edit(playlistEmbed(infos, embed.url, data)),
                   ),
                );
+            } else if (emoji.name === 'playlist') {
+               const id = getYoutubePlaylistId(embed.url);
+               getAllPlaylistData(id).then((playlistLinks) =>
+                  musicManager.setPlaylist(playlistLinks, message.guild.member(user.id).voice.channel),
+               );
+            } else if (emoji.name === 'skip') {
+               musicManager.skip();
             } else if (emoji.name === 'play') {
                if (musicManager.isPaused()) {
                   musicManager.resume();

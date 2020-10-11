@@ -51,6 +51,36 @@ export const getPlaylistData = async (id: string, page?: string) => {
    return response.data;
 };
 
+export const getAllPlaylistData = async (id: string) => {
+   let pageToken = null;
+   let links = [];
+   let retrieve = true;
+
+   while (retrieve) {
+      const token = pageToken ? { pageToken } : {};
+      const response = await instance.get(Config.api.endpoint.youtube, {
+         params: {
+            part: 'snippet',
+            playlistId: id,
+            key: Config.api.key.youtube,
+            maxResults: 50,
+            ...token,
+         },
+      });
+
+      pageToken = response.data.nextPageToken;
+      for (let i = 0; i < response.data.items.length; ++i) {
+         links.push(`https://www.youtube.com/watch?v=${response.data.items[i].snippet.resourceId.videoId}`);
+      }
+
+      if (!pageToken) {
+         retrieve = false;
+      }
+   }
+
+   return links;
+};
+
 export const getYoutubePlaylistInfos = async (id: string) => {
    const response = await instance.get(Config.api.endpoint.youtubePlaylistName, {
       params: {
@@ -62,7 +92,7 @@ export const getYoutubePlaylistInfos = async (id: string) => {
 
    return {
       title: response.data.items[0].snippet.title,
-      picture: response.data.items[0].snippet.thumbnails.maxres.url,
+      picture: response.data.items[0].snippet.thumbnails?.maxres?.url,
    };
 };
 
@@ -73,6 +103,8 @@ const handleMessage = (message: d.Message, channels: string[] = []) => {
       const link = message.content;
       const id = getYoutubePlaylistId(link);
 
+      const playlist = message.client.emojis.cache.find((e) => e.name === 'playlist');
+      const skip = message.client.emojis.cache.find((e) => e.name === 'skip');
       const play = message.client.emojis.cache.find((e) => e.name === 'play');
       const pause = message.client.emojis.cache.find((e) => e.name === 'pause');
       const stop = message.client.emojis.cache.find((e) => e.name === 'stop');
@@ -89,44 +121,57 @@ const handleMessage = (message: d.Message, channels: string[] = []) => {
                      .send(playlistEmbed(infos, link, data))
                      .then((message) =>
                         message
-                           .react('⬅️')
+                           .react(playlist)
                            .then(() =>
                               message
-                                 .react('1️⃣')
+                                 .react(skip)
                                  .then(() =>
                                     message
-                                       .react('2️⃣')
+                                       .react('⬅️')
                                        .then(() =>
                                           message
-                                             .react('3️⃣')
+                                             .react('1️⃣')
                                              .then(() =>
                                                 message
-                                                   .react('4️⃣')
+                                                   .react('2️⃣')
                                                    .then(() =>
                                                       message
-                                                         .react('5️⃣')
+                                                         .react('3️⃣')
                                                          .then(() =>
                                                             message
-                                                               .react('➡️')
+                                                               .react('4️⃣')
                                                                .then(() =>
                                                                   message
-                                                                     .react(play)
+                                                                     .react('5️⃣')
                                                                      .then(() =>
                                                                         message
-                                                                           .react(pause)
+                                                                           .react('➡️')
                                                                            .then(() =>
                                                                               message
-                                                                                 .react(stop)
+                                                                                 .react(play)
                                                                                  .then(() =>
                                                                                     message
-                                                                                       .react(minus)
+                                                                                       .react(pause)
                                                                                        .then(() =>
                                                                                           message
-                                                                                             .react(plus)
+                                                                                             .react(stop)
                                                                                              .then(() =>
-                                                                                                message.react(
-                                                                                                   leave,
-                                                                                                ),
+                                                                                                message
+                                                                                                   .react(
+                                                                                                      minus,
+                                                                                                   )
+                                                                                                   .then(() =>
+                                                                                                      message
+                                                                                                         .react(
+                                                                                                            plus,
+                                                                                                         )
+                                                                                                         .then(
+                                                                                                            () =>
+                                                                                                               message.react(
+                                                                                                                  leave,
+                                                                                                               ),
+                                                                                                         ),
+                                                                                                   ),
                                                                                              ),
                                                                                        ),
                                                                                  ),
