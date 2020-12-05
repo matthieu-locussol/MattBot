@@ -10,5 +10,7 @@ new Client({
       obm: 'osu beatmap',
       or: 'osu recent',
       ob: 'osu best',
+      dmp: 'meme dmp',
+      findus: 'meme findus',
    },
 }).run();
