@@ -124,15 +124,32 @@ export default class MusicManager {
       this.queue = [];
       this.queueCurrent = null;
    };
-   public playPlaylist = () => {
-      const link = this.queue[this.queueCurrent];
-      this.queueCurrent = (this.queueCurrent + 1) % this.queue.length;
-      this.playYoutube(link, false);
+   public playPlaylist = (voiceChannel: d.VoiceChannel | null = null) => {
+      if (voiceChannel) {
+         this.setPlaylist(this.queue, voiceChannel);
+      } else if (this.queue.length > 0 && this.queueCurrent >= 0) {
+         const link = this.queue[this.queueCurrent];
+         this.queueCurrent = (this.queueCurrent + 1) % this.queue.length;
+         this.playYoutube(link, false);
+      }
    };
    public skip = () => {
       this.skipped = true;
       this.stop(false);
       this.playPlaylist();
+   };
+   public addSongPlaylist = (link: string) => {
+      this.queue.push(link);
+
+      if (this.queueCurrent === null) {
+         this.queueCurrent = 0;
+      } else {
+         this.queueCurrent = this.queueCurrent + 1;
+      }
+
+      return `Musique ajoutée à la liste en position ${this.queue.length} ! Musique en cours : ${
+         ((this.queueCurrent + 1) % this.queue.length) + 1
+      }/${this.queue.length}.`;
    };
 
    public getChannels = () => this.channels;

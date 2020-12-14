@@ -47,6 +47,13 @@ export const handleMessageReaction = (
                upVolume(message.channel, musicManager);
             } else if (emoji.name === 'leave') {
                musicManager.leave();
+            } else if (emoji.name === 'playlist') {
+               musicManager.playPlaylist(message.guild.member(user.id).voice.channel);
+            } else if (emoji.name === 'add') {
+               const status = musicManager.addSongPlaylist(message.content);
+               message.channel.send(status);
+            } else if (emoji.name === 'clear') {
+               musicManager.clearPlaylist();
             }
          }
          // Reacts to a Youtube playlist

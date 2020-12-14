@@ -9,6 +9,9 @@ const handleMessage = (message: d.Message, channels: string[] = []) => {
       const minus = message.client.emojis.cache.find((e) => e.name === 'minus');
       const plus = message.client.emojis.cache.find((e) => e.name === 'plus');
       const leave = message.client.emojis.cache.find((e) => e.name === 'leave');
+      const playlist = message.client.emojis.cache.find((e) => e.name === 'playlist');
+      const add = message.client.emojis.cache.find((e) => e.name === 'add');
+      const clear = message.client.emojis.cache.find((e) => e.name === 'clear');
 
       message
          .react(play)
@@ -19,7 +22,21 @@ const handleMessage = (message: d.Message, channels: string[] = []) => {
                   message
                      .react(stop)
                      .then(() =>
-                        message.react(minus).then(() => message.react(plus).then(() => message.react(leave))),
+                        message
+                           .react(minus)
+                           .then(() =>
+                              message
+                                 .react(plus)
+                                 .then(() =>
+                                    message
+                                       .react(leave)
+                                       .then(() =>
+                                          message
+                                             .react(playlist)
+                                             .then(() => message.react(add).then(() => message.react(clear))),
+                                       ),
+                                 ),
+                           ),
                      ),
                ),
          );
