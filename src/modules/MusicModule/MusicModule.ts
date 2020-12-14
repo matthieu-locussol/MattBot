@@ -38,22 +38,29 @@ export const downVolume = (
    }
 };
 
-export const playMusic = (url: string, message: d.Message, musicManager: MusicManager) => {
+export const playMusic = (
+   url: string,
+   message: d.Message,
+   musicManager: MusicManager,
+   forceVoiceChannel: d.VoiceChannel | null = null,
+) => {
    const prefix = message.content[0] === 'h' ? '!' : message.content[0];
    const voiceChannel = message.member.voice.channel;
 
-   if (voiceChannel) {
-      if (!musicManager.isPlaying()) {
-         musicManager.join(voiceChannel).then(() => {
+   if (!musicManager.isPlaying()) {
+      if (forceVoiceChannel) {
+         musicManager.join(forceVoiceChannel).then(() => {
             musicManager.playYoutube(url);
          });
       } else {
-         message.reply(
-            `Une musique est déjà en cours, utilise \`${prefix}music play force\` pour forcer le changement.`,
-         );
+         musicManager.join(voiceChannel).then(() => {
+            musicManager.playYoutube(url);
+         });
       }
    } else {
-      message.reply("Rejoins d'abord un canal vocal, connard.");
+      message.reply(
+         `Une musique est déjà en cours, utilise \`${prefix}music play force\` pour forcer le changement.`,
+      );
    }
 };
 

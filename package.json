@@ -23,6 +23,6 @@
       "ojsama": "^1.2.5",
       "timeago.js": "^4.0.2",
       "typescript": "^3.8.3",
-      "ytdl-core": "^3.2.2"
+      "ytdl-core": "^4.1.5"
    }
 }

@@ -22,13 +22,20 @@ export const handleMessageReaction = (
 ) => {
    if (canAnswer(message, channels)) {
       if (!user.bot) {
+         removeReaction(message, user);
+
          // Reacts to a Youtube video
          if (isYoutube(message.content)) {
             if (emoji.name === 'play') {
                if (musicManager.isPaused()) {
                   musicManager.resume();
                } else {
-                  playMusic(message.content, message, musicManager);
+                  playMusic(
+                     message.content,
+                     message,
+                     musicManager,
+                     message.guild.member(user.id).voice.channel,
+                  );
                }
             } else if (emoji.name === 'pause') {
                musicManager.pause();
@@ -92,8 +99,6 @@ export const handleMessageReaction = (
                playMusicForce(link, { content: link, author: user, member } as d.Message, musicManager);
             }
          }
-
-         removeReaction(message, user);
       }
    }
 };

@@ -105,6 +105,7 @@ export default class MusicManager {
 
       const options: ytdl.downloadOptions = {
          highWaterMark: 1 << 25,
+         quality: 'highestaudio',
       };
       const stream = ytdl(link, options);
       this.dispatcher = this.connection.play(stream);
